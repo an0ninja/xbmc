@@ -1,0 +1,12 @@
+file(COPY /root/tools/xbmc/project/cmake/addons/depends/common/tinyxml/CMakeLists.txt
+                     DESTINATION /root/tools/xbmc/xbmc/build/tinyxml/src/tinyxml)
+file(COPY /root/tools/xbmc/project/cmake/addons/depends/common/tinyxml/CMakeLists.txt
+                     DESTINATION /root/tools/xbmc/xbmc/build/tinyxml/src/tinyxml)
+file(COPY /root/tools/xbmc/project/cmake/addons/depends/common/tinyxml/CMakeLists.txt
+                     DESTINATION /root/tools/xbmc/xbmc/build/tinyxml/src/tinyxml)
+file(COPY /root/tools/xbmc/project/cmake/addons/depends/common/tinyxml/CMakeLists.txt
+                     DESTINATION /root/tools/xbmc/xbmc/build/tinyxml/src/tinyxml)
+file(COPY /root/tools/xbmc/project/cmake/addons/depends/common/tinyxml/CMakeLists.txt
+                     DESTINATION /root/tools/xbmc/xbmc/build/tinyxml/src/tinyxml)
+file(COPY /root/tools/xbmc/project/cmake/addons/depends/common/tinyxml/CMakeLists.txt
+                     DESTINATION /root/tools/xbmc/xbmc/build/tinyxml/src/tinyxml)
