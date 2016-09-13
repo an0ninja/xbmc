@@ -6,52 +6,7 @@ if(DEPENDS_DIR)
   list(APPEND CMAKE_PREFIX_PATH ${DEPENDS_DIR})
 endif()
 
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS} -x assembler-with-cpp")
-
-# general
-option(VERBOSE            "Enable verbose output?" OFF)
-option(ENABLE_DVDCSS      "Enable libdvdcss support?" ON)
-option(ENABLE_UPNP        "Enable UPnP support?" ON)
-option(ENABLE_NONFREE     "Enable non-free components?" ON)
-option(ENABLE_AIRTUNES    "Enable AirTunes support?" ON)
-option(ENABLE_CEC         "Enable CEC support?" ON)
-if(UNIX)
-  if(NOT APPLE)
-    option(ENABLE_INTERNAL_FFMPEG "Enable internal ffmpeg?" ON)
-  endif()
-  option(FFMPEG_PATH        "Path to external ffmpeg?" "")
-  option(ENABLE_INTERNAL_CROSSGUID "Enable internal crossguid?" ON)
-  option(ENABLE_OPENSSL     "Enable OpenSSL?" ON)
-  option(ENABLE_SDL         "Enable SDL?" OFF)
-if(CORE_SYSTEM_TYPE STREQUAL linux OR CORE_SYSTEM_TYPE STREQUAL freebsd)
-  option(ENABLE_X11         "Enable X11 support?" ON)
-endif()
-  option(ENABLE_EGL         "Enable EGL?" OFF)
-  option(ENABLE_OPTICAL     "Enable optical support?" ON)
-endif()
-# System options
-if(NOT WIN32)
-  option(WITH_ARCH              "build with given arch" OFF)
-  option(WITH_CPU               "build with given cpu" OFF)
-  option(ENABLE_CCACHE          "Enable Ccache support" ON)
-endif()
-if(CMAKE_SYSTEM_NAME STREQUAL Linux)
-  option(ENABLE_LIRC            "Enable LIRC support?" ON)
-  option(ENABLE_EVENTCLIENTS    "Enable event clients support?" OFF)
-endif()
-
-# Build static libraries per directory
-if(NOT CMAKE_GENERATOR MATCHES "Visual Studio" AND NOT CMAKE_GENERATOR STREQUAL Xcode)
-  set(STATIC_LIBS_DEFAULT ON)
-else()
-  set(STATIC_LIBS_DEFAULT OFF)
-endif()
-option(ENABLE_STATIC_LIBS "Build static libraries per directory" ${STATIC_LIBS_DEFAULT})
-unset(STATIC_LIBS_DEFAULT)
-
+# Set CORE_SOURCE_DIR and CORE_BUILD_DIR
 get_filename_component(CORE_SOURCE_DIR ${PROJECT_SOURCE_DIR}/../.. ABSOLUTE)
 set(CORE_BUILD_DIR build)
 
@@ -66,6 +21,7 @@ if(NOT VERBOSE)
   set(CMAKE_REQUIRED_QUIET ON)
 endif()
 
+# Includes
 include(modules/extra/ECMEnableSanitizers.cmake)
 include(scripts/common/GeneratorSetup.cmake)
 include(scripts/common/AddOptions.cmake)
@@ -75,7 +31,54 @@ include(scripts/common/ProjectMacros.cmake)
 include(scripts/${CORE_SYSTEM_NAME}/PathSetup.cmake)
 include(ExternalProject)
 
-core_find_git_rev()
+# Languages and global compiler settings
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS} -x assembler-with-cpp")
+
+# general
+option(VERBOSE            "Enable verbose output?" OFF)
+option(ENABLE_DVDCSS      "Enable libdvdcss support?" ON)
+option(ENABLE_UPNP        "Enable UPnP support?" ON)
+option(ENABLE_NONFREE     "Enable non-free components?" ON)
+option(ENABLE_AIRTUNES    "Enable AirTunes support?" ON)
+option(ENABLE_CEC         "Enable CEC support?" ON)
+option(ENABLE_OPTICAL     "Enable optical support?" ON)
+if(UNIX)
+  if(NOT APPLE)
+    option(ENABLE_INTERNAL_FFMPEG "Enable internal ffmpeg?" ON)
+  endif()
+  option(FFMPEG_PATH        "Path to external ffmpeg?" "")
+  option(ENABLE_INTERNAL_CROSSGUID "Enable internal crossguid?" ON)
+  option(ENABLE_OPENSSL     "Enable OpenSSL?" ON)
+  option(ENABLE_SDL         "Enable SDL?" OFF)
+  if(CORE_SYSTEM_NAME STREQUAL linux OR CORE_SYSTEM_NAME STREQUAL freebsd)
+    option(ENABLE_X11         "Enable X11 support?" ON)
+    option(ENABLE_AML         "Enable AML?" OFF)
+  endif()
+endif()
+# System options
+if(NOT WIN32)
+  option(WITH_ARCH              "build with given arch" OFF)
+  option(WITH_CPU               "build with given cpu" OFF)
+  option(ENABLE_CCACHE          "Enable Ccache support" ON)
+endif()
+if(CORE_SYSTEM_NAME STREQUAL linux)
+  option(ENABLE_LIRC            "Enable LIRC support?" ON)
+  option(ENABLE_EVENTCLIENTS    "Enable event clients support?" OFF)
+endif()
+
+# Build static libraries per directory
+if(NOT CMAKE_GENERATOR MATCHES "Visual Studio" AND NOT CMAKE_GENERATOR STREQUAL Xcode)
+  set(STATIC_LIBS_DEFAULT ON)
+else()
+  set(STATIC_LIBS_DEFAULT OFF)
+endif()
+option(ENABLE_STATIC_LIBS "Build static libraries per directory" ${STATIC_LIBS_DEFAULT})
+unset(STATIC_LIBS_DEFAULT)
+
+core_find_git_rev(APP_SCMID FULL)
 core_find_versions()
 
 # Dynamically loaded libraries built with the project
@@ -107,7 +110,7 @@ set(required_deps Sqlite3 FreeType PCRE Cpluff LibDvd
                   TinyXML Python Yajl
                   Lzo2 Fribidi TagLib FFMPEG CrossGUID)
 if(NOT WIN32)
-  list(APPEND required_deps SmbClient ZLIB)
+  list(APPEND required_deps ZLIB)
 else()
   list(APPEND required_deps D3DX11Effects)
 endif()
@@ -117,7 +120,7 @@ endif()
 
 # Optional dependencies
 set(optional_deps MicroHttpd MySqlClient SSH XSLT
-                  Alsa UDEV DBus Avahi
+                  Alsa UDEV DBus Avahi SmbClient
                   PulseAudio VDPAU VAAPI)
 
 # Required, dyloaded deps
@@ -206,7 +209,7 @@ if(NOT WIN32)
   endif()
 endif()
 
-if(CORE_SYSTEM_NAME STREQUAL android)
+if(CORE_SYSTEM_NAME STREQUAL android OR CORE_SYSTEM_NAME STREQUAL linux)
   core_optional_dep(AML)
 elseif(CORE_SYSTEM_NAME STREQUAL rbpi)
   core_require_dep(MMAL)
@@ -321,6 +324,7 @@ if(NOT CORE_SYSTEM_NAME STREQUAL android)
   add_executable(${APP_NAME_LC} ${CORE_MAIN_SOURCE} "${RESOURCES}" ${OTHER_FILES})
   add_dependencies(${APP_NAME_LC} ${APP_NAME_LC}-libraries export-files pack-skins)
 else()
+  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined")
   add_library(${APP_NAME_LC} SHARED ${CORE_MAIN_SOURCE} "${RESOURCES}" ${OTHER_FILES})
   # The libraries depend on the main shared library for wrapping. Because of this we cannot build
   # the libraries as a dependency. This requires to build the all target on android (and not only kodi).
@@ -396,6 +400,12 @@ if(EXISTS ${PROJECT_SOURCE_DIR}/scripts/${CORE_SYSTEM_NAME}/ExtraTargets.cmake)
 endif()
 
 include(scripts/${CORE_SYSTEM_NAME}/Install.cmake)
+
+# Add uninstall target
+if(CMAKE_GENERATOR MATCHES Makefile)
+  add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${PROJECT_SOURCE_DIR}/scripts/common/Uninstall.cmake)
+  set_target_properties(uninstall PROPERTIES FOLDER "Build Utilities")
+endif()
 
 # Create target that allows to build binary-addons.
 # Use make binary-addons ADDONS="visualization.spectrum" to select the addons to build.
